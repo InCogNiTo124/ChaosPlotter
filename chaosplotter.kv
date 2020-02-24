@@ -1,0 +1,64 @@
+#:kivy 1.11
+#:import Graph kivy.garden.graph.Graph
+<ChaosPlotter>:
+    BoxLayout:
+        orientation: "vertical"
+        spacing: 10
+        size: root.size
+
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint: 1.0, 0.25
+            pos_hint: {'x': 0.0}
+
+            Slider:
+                id: population_start
+                orientation: "vertical"
+                min: 0
+                max: 1
+                step: 0.01
+                value: 0.5
+                size_hint: 0.1, 1.0
+                pos_hint: {'x': 0.0}
+
+            Graph:
+                xlabel: 'Iterations'
+                ylabel: 'Population'
+                x_ticks_minor: 5
+                x_ticks_major: 25
+                y_ticks_major: 0.1
+                y_grid_label: True
+                x_grid_label: True
+                padding: 5
+                x_grid: True
+                y_grid: True
+                xmin: 0
+                xmax: 3000
+                ymin: 0
+                y_max: 1
+                size_hint: 0.9, 1.0
+
+        BoxLayout:
+            size_hint: 1.0, 0.1
+            Slider:
+                id: r_factor
+                orientation: "horizontal"
+                min: 0
+                max: 4
+                step: 0.001
+                value: 0
+                size_hint_y: 1.0
+
+        BoxLayout:
+            size_hint: 1.0, 0.65
+            
+            Label:
+                size_hint: 1.0, 1.0
+                canvas.before:
+                    Color:
+                        rgba: 1, 0, 0, 1
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
+
+
