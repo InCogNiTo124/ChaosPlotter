@@ -3,6 +3,7 @@
 
 <ChaosPlotter>:
     graph: graph
+    diagram: diag_label
     BoxLayout:
         orientation: "vertical"
         spacing: 10
@@ -51,7 +52,7 @@
                 id: r_factor
                 orientation: "horizontal"
                 sensitivity: "handle"
-                min: 0
+                min: 1
                 max: 4
                 step: 0.001
                 value: root.r
@@ -66,10 +67,12 @@
             size_hint: 1.0, 0.65
             
             Label:
+                id: diag_label
                 size_hint: 1.0, 1.0
+                on_size: print("DIAG_SIZE", self.size); root.start_bifurcation(self.size)
                 canvas.before:
                     Color:
-                        rgba: 1, 0, 0, 1
+                        rgba: 1, 1, 1, 1
                     Rectangle:
                         size: self.size
                         pos: self.pos
