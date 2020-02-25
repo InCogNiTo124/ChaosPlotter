@@ -1,6 +1,9 @@
 from kivy.config import Config
-Config.set('graphics', 'window_state', 'maximized')
+Config.set('graphics', 'resizable', False)
 Config.set('graphics', 'fbo', 'hardware')
+Config.set('graphics', 'width', '1280')
+Config.set('graphics', 'height', '960')
+
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ObjectProperty
