@@ -7,7 +7,7 @@ from kivy.garden.graph import Graph, LinePlot as Plot
 #from kivy.uix.boxlayout import BoxLayout
 
 
-ITER_COUNT = 10
+ITER_COUNT = 5000
 def iterate(population, r):
     while True:
         yield population
@@ -17,16 +17,19 @@ def iterate(population, r):
 def generate(population, r):
     iterator = iterate(population, r)
     sequence = [(i, next(iterator)) for i in range(ITER_COUNT)]
+    #print(sequence)
     return sequence
 
 class ChaosPlotter(Widget):
-    population = NumericProperty(0.5)
+    population = NumericProperty(0.8)
     r = NumericProperty(2)
-    graph = Graph()
-    plot = Plot()
+    graph = ObjectProperty(None)
+    Graph() # There is a serious bug in a garden.graph library that can only be solved like this
+    plot = Plot(color=(1, 0, 0, 1))
 
     def update(self):
         self.graph.remove_plot(self.plot)
+        #self.plot = Plot(color=(1, 0, 0, 1))
         self.plot.points = generate(self.population, self.r)
         self.graph.add_plot(self.plot)
         return
@@ -36,7 +39,9 @@ class ChaosPlotter(Widget):
 
 class ChaosPlotterApp(App):
     def build(self):
-        return ChaosPlotter()
+        plotter = ChaosPlotter()
+        plotter.update()
+        return plotter
 
 if __name__ == "__main__":
     ChaosPlotterApp().run()
