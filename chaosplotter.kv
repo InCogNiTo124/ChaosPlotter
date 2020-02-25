@@ -13,7 +13,7 @@
             size_hint: 1.0, 0.25
             pos_hint: {'x': 0.0}
 
-            Slider:
+            TickSlider:
                 id: population_start
                 sensitivity: "handle"
                 orientation: "vertical"
@@ -21,9 +21,11 @@
                 max: 1
                 step: 0.01
                 value: root.population
-                size_hint: 0.1, 1.0
+                size_hint: 0.05, 1.0
                 pos_hint: {'x': 0.0}
                 on_value: root.population = self.value
+                ticks_major: 1
+                ticks_minor: 5
 
             Graph:
                 id: graph
@@ -41,11 +43,11 @@
                 xmax: 1000
                 ymin: 0
                 ymax: 1
-                size_hint: 0.9, 1.0
+                size_hint: 0.95, 1.0
 
         BoxLayout:
             size_hint: 1.0, 0.1
-            Slider:
+            TickSlider:
                 id: r_factor
                 orientation: "horizontal"
                 sensitivity: "handle"
@@ -55,6 +57,10 @@
                 value: root.r
                 size_hint_y: 1.0
                 on_value: root.r = self.value
+                ticks_major: 1
+                ticks_minor: 5
+                value_track: True
+                value_track_color: 0.2, 0.71, 0.9, 1.0
 
         BoxLayout:
             size_hint: 1.0, 0.65

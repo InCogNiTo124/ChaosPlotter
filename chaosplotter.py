@@ -3,9 +3,12 @@ from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ObjectProperty
 from kivy.garden.graph import Graph, LinePlot as Plot
-#from kivy.uix.slider import Slider
+from kivy.garden.tickmarker import TickMarker
+from kivy.uix.slider import Slider
 #from kivy.uix.boxlayout import BoxLayout
 
+class TickSlider(Slider, TickMarker):
+    pass
 
 ITER_COUNT = 5000
 def iterate(population, r):
