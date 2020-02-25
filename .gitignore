@@ -148,3 +148,4 @@ pip-selfcheck.json
 # End of https://www.gitignore.io/api/vim,python,virtualenv
 
 activate
+libs/
