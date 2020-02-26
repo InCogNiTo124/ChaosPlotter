@@ -4,6 +4,8 @@
 <ChaosPlotter>:
     graph: graph
     diagram: diag_label
+    r_slider: r_factor
+
     BoxLayout:
         orientation: "vertical"
         spacing: 10
@@ -14,7 +16,7 @@
             Spinner:
                 pos_hint: {'x': 0}
                 size_hint_x: 0.2
-                values: ["R * P * (1 - P)", "R * sin(P)"]
+                values: ["R * P * (1 - P)", "R * sin(P)", "R * sin(P)^2", "R * P * P * (1-P)", "R * P * (1 - P*P)"]
                 on_text: root.function_index = self.values.index(self.text)
             Spinner:
                 #size_hint: 0.2, 0.05
@@ -104,5 +106,4 @@
                     Rectangle:
                         size: self.size
                         pos: self.pos
-
 
