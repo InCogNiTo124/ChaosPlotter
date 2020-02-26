@@ -11,22 +11,30 @@
 
         BoxLayout:
             orientation: "horizontal"
-            size_hint: 1.0, 0.25
+            size_hint: 1.0, 0.2
             pos_hint: {'x': 0.0}
-
-            TickSlider:
-                id: population_start
-                sensitivity: "handle"
+            
+            BoxLayout:
                 orientation: "vertical"
-                min: 0
-                max: 1
-                step: 0.01
-                value: root.population
                 size_hint: 0.05, 1.0
-                pos_hint: {'x': 0.0}
-                on_value: root.population = self.value
-                ticks_major: 1
-                ticks_minor: 5
+                TickSlider:
+                    id: population_start
+                    sensitivity: "handle"
+                    orientation: "vertical"
+                    min: 0
+                    max: 1
+                    step: 0.01
+                    value: root.population
+                    size_hint: 1.0, 0.84
+                    pos_hint: {'x': 0.0}
+                    on_value: root.population = self.value
+                    ticks_major: 1
+                    ticks_minor: 5
+                
+                Label:
+                    text: "P = {:.2f}".format(population_start.value)
+                    size_hint: 1.0, 0.16
+                    font_size: 18
 
             Graph:
                 id: graph
@@ -45,31 +53,37 @@
                 ymin: 0
                 ymax: 1
                 size_hint: 0.95, 1.0
+        
+        Label:
+            text_size: self.size
+            size_hint: 1.0, 0.03
+            text: "R = {:.3f}".format(r_factor.value)
+            halign: "left"
+            font_size: 18
+            padding_x: [10, 0]
+
+        TickSlider:
+            size_hint: 1.0, 0.03
+            id: r_factor
+            orientation: "horizontal"
+            sensitivity: "handle"
+            min: 1
+            max: 4
+            step: 0.001
+            value: root.r
+            on_value: root.r = self.value
+            ticks_major: 1
+            ticks_minor: 5
+            value_track: True
+            value_track_color: 0.2, 0.71, 0.9, 1.0
 
         BoxLayout:
-            size_hint: 1.0, 0.1
-            TickSlider:
-                id: r_factor
-                orientation: "horizontal"
-                sensitivity: "handle"
-                min: 1
-                max: 4
-                step: 0.001
-                value: root.r
-                size_hint_y: 1.0
-                on_value: root.r = self.value
-                ticks_major: 1
-                ticks_minor: 5
-                value_track: True
-                value_track_color: 0.2, 0.71, 0.9, 1.0
-
-        BoxLayout:
-            size_hint: 1.0, 0.65
+            size_hint: 1.0, 0.7
             
             Label:
                 id: diag_label
                 size_hint: 1.0, 1.0
-                on_size: print("DIAG_SIZE", self.size); root.start_bifurcation(self.size)
+                #on_size: root.start_bifurcation(self.size)
                 canvas.before:
                     Color:
                         rgba: 1, 1, 1, 1
