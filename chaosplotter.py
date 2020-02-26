@@ -56,6 +56,7 @@ class ChaosPlotter(Widget):
     r_slider = ObjectProperty(None)
     graph = ObjectProperty(None)
     diagram = ObjectProperty(None)
+    progress = ObjectProperty(None)
     function_index = NumericProperty(None)
     Graph() # There is a serious bug in a garden.graph library that can only be solved like this
     plot = Plot(color=(1, 0, 0, 1))
@@ -97,6 +98,7 @@ class ChaosPlotter(Widget):
     on_r = on_population
 
     def start_bifurcation(self, size, function):
+        self.progress.value = 0
         self.update_graph()
         #print(self.diagram.canvas.__dict__)
         self.diagram.canvas.clear()
@@ -109,11 +111,13 @@ class ChaosPlotter(Widget):
                     executor.submit(get_last, function, r_min + (r_max - r_min)*r/R_COUNT, p/P_COUNT, self.graph.xmax): r/R_COUNT
                     for p, r in it.product(range(1, P_COUNT), range(R_COUNT))
                 }
+                self.progress.max = len(futures)
                 points = Point(points=[], pointsize=0.5)
                 with self.diagram.canvas:
                     Color(0, 0, 0)
                 self.diagram.canvas.add(points)
                 for future in cf.as_completed(futures):
+                    self.progress.value += 1
                     r = futures[future]
                     p = future.result()
                     #with self.diagram.canvas:

@@ -5,6 +5,7 @@
     graph: graph
     diagram: diag_label
     r_slider: r_factor
+    progress: progress_bar
 
     BoxLayout:
         orientation: "vertical"
@@ -106,4 +107,10 @@
                     Rectangle:
                         size: self.size
                         pos: self.pos
-
+        BoxLayout: 
+            size_hint: 1.0, 0.02
+            ProgressBar:
+                id: progress_bar
+                size_hint_x: 1.0
+                size_x: 20
+                pos_y: root.center_y
