@@ -3,7 +3,6 @@ Config.set('graphics', 'resizable', False)
 Config.set('graphics', 'fbo', 'hardware')
 Config.set('graphics', 'width', '1280')
 Config.set('graphics', 'height', '960')
-#Config.set('kivy', 'exit_on_escape', False)
 Config.set('graphics', 'borderless', False)
 
 from kivy.app import App
@@ -107,7 +106,6 @@ class ChaosPlotter(Widget):
         return
 
     def update_graph(self):
-        #self.update_indicator()
         if self.function_index is not None:
             self.graph.remove_plot(self.plot)
             self.plot.points = generate(self.FUNCTIONS[self.function_index], self.r, self.population, self.graph.xmax)
@@ -124,7 +122,6 @@ class ChaosPlotter(Widget):
     def start_bifurcation(self, size, function):
         self.progress.value = 0
         self.update_graph()
-        #print(self.diagram.canvas.__dict__)
         self.diagram.canvas.clear()
         size_x, size_y = size
         def f(self, size_x, size_y):
@@ -144,13 +141,9 @@ class ChaosPlotter(Widget):
                     self.progress.value += 1
                     r = futures[future]
                     p = future.result()
-                    #with self.diagram.canvas:
-                    #    Color(0, 0, 0)
-                    #    Point(points=[r*size_x, p*size_y], pointsize=0.5)
                     try:
                         points.add_point(r*size_x, p*size_y)
                     except GraphicException:
-                        print("LIMIT")
                         points = Point(points=[r*size_x, p*size_y], pointsize=0.5)
                         self.diagram.canvas.add(points)
 
@@ -166,3 +159,4 @@ class ChaosPlotterApp(App):
 if __name__ == "__main__":
     a = ChaosPlotterApp()
     a.run()
+
