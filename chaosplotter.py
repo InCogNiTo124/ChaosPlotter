@@ -10,7 +10,7 @@ from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ObjectProperty
 from kivy.garden.graph import Graph, LinePlot as Plot
-from kivy.graphics import Point, Color
+from kivy.graphics import Point, Color, Line
 from kivy.graphics.vertex_instructions import GraphicException
 from kivy.garden.tickmarker import TickMarker
 from kivy.uix.slider import Slider
@@ -61,6 +61,7 @@ class ChaosPlotter(Widget):
     Graph() # There is a serious bug in a garden.graph library that can only be solved like this
     plot = Plot(color=(1, 0, 0, 1))
     diag_size = (0, 0)
+    indicator = Line(points=[], width=1.0)
 
     def update_r_slider(self):
         n = self.r_slider.value_normalized
@@ -85,9 +86,28 @@ class ChaosPlotter(Widget):
     def on_function_index(self, a, b):
         self.update_r_slider()
         self.start_bifurcation(self.diag_size, self.FUNCTIONS[self.function_index])
+        return
 
+    def update_indicator(self):
+        if self.function_index is not None:
+            self.diagram.canvas.remove(self.indicator)
+            start_x, start_y = self.diagram.pos
+            self.indicator.points = [
+                start_x + self.r_slider.value_normalized * self.diagram.width,
+                start_y + self.diagram.height,
+                start_x + self.r_slider.value_normalized * self.diagram.width,
+                start_y
+            ]
+            with self.diagram.canvas:
+                Color(1, 0, 0)
+            self.diagram.canvas.add(self.indicator)
+            with self.diagram.canvas:
+                Color(0, 0, 0)
+            self.diagram.canvas.add(self.indicator)
+        return
 
     def update_graph(self):
+        #self.update_indicator()
         if self.function_index is not None:
             self.graph.remove_plot(self.plot)
             self.plot.points = generate(self.FUNCTIONS[self.function_index], self.r, self.population, self.graph.xmax)
@@ -95,7 +115,11 @@ class ChaosPlotter(Widget):
         return
     
     on_population = lambda self, a, b: self.update_graph()
-    on_r = on_population
+
+    def on_r(self, a, b):
+        self.update_indicator()
+        self.update_graph()
+        return
 
     def start_bifurcation(self, size, function):
         self.progress.value = 0
