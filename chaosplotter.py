@@ -21,21 +21,23 @@ import math
 R_COUNT = 1000
 P_COUNT = 100
 
-def iterate(population, r):
+def iterate(f, r, population):
     while True:
         yield population
-        population = r * population * (1 - population)
+        population = f(r, population)
     return
 
-def generate(population, r, maxiter):
-    iterator = iterate(population, r)
+def generate(fun, r, population, maxiter):
+    iterator = iterate(fun, r, population)
     sequence = [(i, next(iterator)) for i in range(maxiter)]
+    del(iterator)
     return sequence
 
-def get_last(function, r, p, iter_count):
-    last = p
+def get_last(function, r_factor, population, iter_count):
+    iterator = iterate(function, r_factor, population)
+    last = next(iterator)
     for _ in range(iter_count):
-        last = function(r, last)
+        last = next(iterator)
     return last
 
 class TickSlider(Slider, TickMarker):
@@ -58,7 +60,7 @@ class ChaosPlotter(Widget):
 
     def update_graph(self):
         self.graph.remove_plot(self.plot)
-        self.plot.points = generate(self.population, self.r, self.graph.xmax)
+        self.plot.points = generate(self.FUNCTIONS[self.function_index], self.r, self.population, self.graph.xmax)
         self.graph.add_plot(self.plot)
         return
     
