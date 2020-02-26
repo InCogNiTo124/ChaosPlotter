@@ -8,7 +8,20 @@
         orientation: "vertical"
         spacing: 10
         size: root.size
-
+        RelativeLayout:
+            orientation: "horizontal"
+            size_hint: 1.0, 0.05
+            Spinner:
+                pos_hint: {'x': 0}
+                size_hint_x: 0.2
+                values: ["R * P * (1 - P)", "R * sin(P)"]
+                on_text: root.function_index = self.values.index(self.text)
+            Spinner:
+                #size_hint: 0.2, 0.05
+                pos_hint: {'right': 1}
+                size_hint_x: 0.2
+                text: "Population"
+                values: ["Population", "Fourier", "Population diff", "Fourier od diff"]
         BoxLayout:
             orientation: "horizontal"
             size_hint: 1.0, 0.2
@@ -63,7 +76,8 @@
             padding_x: [10, 0]
 
         TickSlider:
-            size_hint: 1.0, 0.03
+            size_hint: 1.02, 0.03
+            pos_hint: {'x': -0.01}
             id: r_factor
             orientation: "horizontal"
             sensitivity: "handle"
@@ -76,14 +90,14 @@
             ticks_minor: 5
             value_track: True
             value_track_color: 0.2, 0.71, 0.9, 1.0
-
+        
         BoxLayout:
-            size_hint: 1.0, 0.7
+            size_hint: 1.0, 0.6
             
             Label:
                 id: diag_label
                 size_hint: 1.0, 1.0
-                #on_size: root.start_bifurcation(self.size)
+                on_size: root.diag_size = self.size
                 canvas.before:
                     Color:
                         rgba: 1, 1, 1, 1
