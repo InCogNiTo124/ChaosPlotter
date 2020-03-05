@@ -6,6 +6,14 @@ from PyQt5.QtWidgets import (
     QWidget, QComboBox, QHBoxLayout, QVBoxLayout, QSpacerItem, QSizePolicy, QSlider, QLabel
 )
 
+class MyQSlider(QSlider):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        return
+
+    def valueNormalized(self):
+        return self.value() / (self.maximum() - self.minimum())
+
 class Graph(FigureCanvas):
     def __init__(self, figsize):
         fig = Figure(figsize=figsize)
@@ -31,7 +39,7 @@ def populateComboBoxes(self):
 
 def populateSliderGraph(self):
     box_sg = QHBoxLayout()
-    self.population_slider = QSlider(Qt.Vertical)
+    self.population_slider = MyQSlider(Qt.Vertical)
     self.population_slider.setTickPosition(QSlider.TicksBothSides)
     box_sg.addWidget(self.population_slider)
     self.graph = Graph(figsize=(10, 3))
@@ -52,8 +60,8 @@ def createUI(self):
     box_v.addLayout(populateComboBoxes(self))
     box_v.addLayout(populateSliderGraph(self))
     box_v.addLayout(populateLabels(self))
-    self.R_slider = QSlider(Qt.Horizontal)
-    box_v.addWidget(self.R_slider)
+    self.r_slider = MyQSlider(Qt.Horizontal)
+    box_v.addWidget(self.r_slider)
 
     self.plot = Graph(figsize=(8, 5))
     box_v.addWidget(self.plot)
@@ -63,3 +71,15 @@ def createUI(self):
 
     self.plot.plot(np.linspace(-10, 10, 501), np.random.randn(501))
     return box_v
+
+def updatePopulation(self, sender):
+    self.population_label.setText("P = {:.02}".format(sender.valueNormalized()))
+    return
+
+def updateRfactor(self, sender):
+    self.r_label.setText("P = {:.02}".format(sender.valueNormalized()))
+
+def doConnections(self):
+    self.population_slider.valueChanged.connect(lambda t: updatePopulation(self, self.sender()))
+    self.r_slider.valueChanged.connect(lambda t: updateRfactor(self, self.sender()))
+    return
