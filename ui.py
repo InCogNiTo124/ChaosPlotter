@@ -2,17 +2,20 @@ import numpy as np
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-from PyQt5.QtWidgets import (
-    QWidget, QComboBox, QHBoxLayout, QVBoxLayout, QSpacerItem, QSizePolicy, QSlider, QLabel
-)
+from PyQt5.QtWidgets import QWidget, QComboBox, QHBoxLayout, QVBoxLayout, QSpacerItem, QSizePolicy, QSlider, QLabel
 
 class MyQSlider(QSlider):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.my_min, self.my_max = 0, 1
         return
 
     def valueNormalized(self):
-        return self.value() / (self.maximum() - self.minimum())
+        return self.my_min + (self.value() / (self.maximum() - self.minimum()) * (self.my_max - self.my_min))
+
+    def setInterval(self, interval_min, interval_max):
+        self.my_min, self.my_max = interval_min, interval_max
+        return
 
 class Graph(FigureCanvas):
     def __init__(self, figsize):
@@ -72,14 +75,3 @@ def createUI(self):
     self.plot.plot(np.linspace(-10, 10, 501), np.random.randn(501))
     return box_v
 
-def updatePopulation(self, sender):
-    self.population_label.setText("P = {:.02}".format(sender.valueNormalized()))
-    return
-
-def updateRfactor(self, sender):
-    self.r_label.setText("P = {:.02}".format(sender.valueNormalized()))
-
-def doConnections(self):
-    self.population_slider.valueChanged.connect(lambda t: updatePopulation(self, self.sender()))
-    self.r_slider.valueChanged.connect(lambda t: updateRfactor(self, self.sender()))
-    return
