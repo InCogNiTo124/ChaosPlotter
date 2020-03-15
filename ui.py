@@ -31,6 +31,8 @@ class Graph(FigureCanvas):
 
     def plot(self, *args, **kwargs):
         return self.axes.plot(*args, **kwargs)
+    def scatter(self, *args, **kwargs):
+        return self.axes.scatter(*args, **kwargs)
     def clear(self, *args, **kwargs):
         return self.axes.clear(*args, **kwargs)
 
@@ -91,10 +93,5 @@ def createUI(self, problem_list):
     self.r_slider = MyQSlider(Qt.Horizontal)
     box_v.addWidget(self.r_slider)
     box_v.addLayout(populatePlot(self))
-    x = np.linspace(-5, 5, 101)
-    y = np.exp(-x**2)
-    self.graph.plot(x, y)
-
-    self.plot.plot(np.linspace(-10, 10, 501), np.random.randn(501))
     return box_v
 

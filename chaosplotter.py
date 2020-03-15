@@ -18,7 +18,7 @@ class ChaosPlotter(QMainWindow):
     PROBLEMS = [
         Function("stub", "Select...", lambda r, p: p, (0, 0)),
         Function("logistic", "R \u00b7 P\u2099(1 - P\u2099)", lambda r, p: r * p * (1-p), (1, 4)),
-        Function("sin", "R \u00b7 sin(P\u2099)", lambda r, p: r * np.sin(np.pi * p), (0, 2)),
+        Function("sin", "R \u00b7 sin(P\u2099)", lambda r, p: r * np.sin(np.pi * p), (0.3, 1)),
     ]
 
     def __init__(self):
@@ -26,10 +26,14 @@ class ChaosPlotter(QMainWindow):
         self.main = QWidget()
         self.setCentralWidget(self.main)
         self.main.setLayout(createUI(self, self.PROBLEMS))
-        self.doConnections()
         self.r_slider.setMinimum(0)
         self.r_slider.setMaximum(10000)
+        self.r_slider.setValue(5000)
         self.r_slider.setInterval(1, 4)
+        self.population_slider.setMinimum(0)
+        self.population_slider.setMaximum(1000)
+        self.population_slider.setValue(500)
+        self.doConnections()
         return
 
     def updatePopulation(self, sender):
@@ -53,12 +57,23 @@ class ChaosPlotter(QMainWindow):
         self.graph.draw()
         return
 
+    def plotBifurcation(self):
+        p = np.random.random(10_000_001)
+        r = np.linspace(*self.function.r_limits, 10_000_001)
+        for i in range(1000):
+            p = self.function(r, p)
+        self.plot.clear()
+        self.plot.scatter(r, p, s=0.1)
+        self.plot.draw()
+        return
+
     def handleFunctionChange(self, index):
         if index > 0:
             #print(self.function_index)
             self.function = self.PROBLEMS[index]
             self.r_slider.setInterval(*self.function.r_limits)
             self.refreshGraph()
+            self.plotBifurcation()
         return
 
     def doConnections(self):
