@@ -19,13 +19,13 @@ class MyQSlider(QSlider):
 
 class Graph(FigureCanvas):
     def __init__(self, figsize):
-        fig = Figure(figsize=figsize)
-        self.axes = fig.add_subplot(1, 1, 1)
+        self.fig = Figure(figsize=figsize)
+        self.axes = self.fig.add_subplot(1, 1, 1)
         # not a bug per se, but a funny behavior
         # this mitigates it
         # https://github.com/matplotlib/matplotlib/issues/16777
         self.axes.format_coord = lambda x, y: ""
-        super().__init__(fig)
+        super().__init__(self.fig)
         return
 
     def plot(self, *args, **kwargs):

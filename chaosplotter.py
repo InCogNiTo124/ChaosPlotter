@@ -24,13 +24,23 @@ class ChaosPlotter(QMainWindow):
         return
 
     def refreshGraph(self, sender):
+        P = np.array([self.population_slider.valueNormalized()])
+        R = self.r_slider.valueNormalized()
+        population = [P]
+        for i in range(1000):
+            P = R * P * (1 - P)
+            population.append(P)
         self.graph.clear()
-        self.graph.plot(np.linspace(-5, 5, 50), np.random.randn(50))
+        self.graph.axes.set_ylim(0.0, 1.0)
+        self.graph.plot(np.arange(0, len(population), 1), population, '.')
+        self.graph.draw()
+        return
 
     def doConnections(self):
         self.population_slider.valueChanged.connect(lambda t: self.updatePopulation(self.sender()))
         self.population_slider.valueChanged.connect(lambda t: self.refreshGraph(self.sender()))
         self.r_slider.valueChanged.connect(lambda t: self.updateRfactor(self.sender()))
+        self.r_slider.valueChanged.connect(lambda t: self.refreshGraph(self.sender()))
         return
 
 if __name__ == "__main__":
