@@ -20,12 +20,16 @@ class ChaosPlotter(QMainWindow):
         return
 
     def updateRfactor(self, sender):
-        print(sender.valueNormalized())
         self.r_label.setText("R = {}".format(round(sender.valueNormalized(), 3)))
         return
 
+    def refreshGraph(self, sender):
+        self.graph.clear()
+        self.graph.plot(np.linspace(-5, 5, 50), np.random.randn(50))
+
     def doConnections(self):
         self.population_slider.valueChanged.connect(lambda t: self.updatePopulation(self.sender()))
+        self.population_slider.valueChanged.connect(lambda t: self.refreshGraph(self.sender()))
         self.r_slider.valueChanged.connect(lambda t: self.updateRfactor(self.sender()))
         return
 
