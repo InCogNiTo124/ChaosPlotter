@@ -34,15 +34,15 @@ class Graph(FigureCanvas):
     def clear(self, *args, **kwargs):
         return self.axes.clear(*args, **kwargs)
 
-def populateComboBoxes(self):
+def populateComboBoxes(self, problem_list):
     box_cb = QHBoxLayout()
-    functions_cb = QComboBox()
-    for item in ["R \u00b7 P\u2099(1 - P\u2099)", "R \u00b7 sin(P\u2099)"]:
-        functions_cb.addItem(item)
-    font = functions_cb.font()
+    self.functions_cb = QComboBox()
+    for problem in problem_list:
+        self.functions_cb.addItem(problem.equation)
+    font = self.functions_cb.font()
     font.setPointSize(font.pointSize() + 10)
-    functions_cb.setFont(font)
-    box_cb.addWidget(functions_cb)
+    self.functions_cb.setFont(font)
+    box_cb.addWidget(self.functions_cb)
     box_cb.addItem(QSpacerItem(10, 10, QSizePolicy.Expanding))
     graph_cb = QComboBox()
     for item in ["P\u2099", "\u2131[P\u2099]", "P\u2099\u208A\u2081 - P\u2099", "\u2131[P\u2099\u208A\u2081 - P\u2099]"]:
@@ -83,9 +83,9 @@ def populatePlot(self):
     box_plot.addWidget(self.plot_tb)
     return box_plot
 
-def createUI(self):
+def createUI(self, problem_list):
     box_v = QVBoxLayout(self.main) 
-    box_v.addLayout(populateComboBoxes(self))
+    box_v.addLayout(populateComboBoxes(self, problem_list))
     box_v.addLayout(populateSliderGraph(self))
     box_v.addLayout(populateLabels(self))
     self.r_slider = MyQSlider(Qt.Horizontal)
