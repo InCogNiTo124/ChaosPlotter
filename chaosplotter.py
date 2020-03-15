@@ -23,7 +23,7 @@ class ChaosPlotter(QMainWindow):
         self.r_label.setText("R = {}".format(round(sender.valueNormalized(), 3)))
         return
 
-    def refreshGraph(self, sender):
+    def refreshGraph(self):
         P = np.array([self.population_slider.valueNormalized()])
         R = self.r_slider.valueNormalized()
         population = [P]
@@ -38,9 +38,9 @@ class ChaosPlotter(QMainWindow):
 
     def doConnections(self):
         self.population_slider.valueChanged.connect(lambda t: self.updatePopulation(self.sender()))
-        self.population_slider.valueChanged.connect(lambda t: self.refreshGraph(self.sender()))
+        self.population_slider.valueChanged.connect(lambda t: self.refreshGraph())
         self.r_slider.valueChanged.connect(lambda t: self.updateRfactor(self.sender()))
-        self.r_slider.valueChanged.connect(lambda t: self.refreshGraph(self.sender()))
+        self.r_slider.valueChanged.connect(lambda t: self.refreshGraph())
         return
 
 if __name__ == "__main__":

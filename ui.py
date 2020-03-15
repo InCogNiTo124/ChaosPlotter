@@ -24,7 +24,8 @@ class Graph(FigureCanvas):
         # not a bug per se, but a funny behavior
         # this mitigates it
         # https://github.com/matplotlib/matplotlib/issues/16777
-        self.axes.format_coord = lambda x, y: ""
+        # self.axes.format_coord = lambda x, y: ""
+        # unused due to simpler solution
         super().__init__(self.fig)
         return
 
@@ -59,7 +60,7 @@ def populateSliderGraph(self):
     box_sg.addWidget(self.population_slider)
     self.graph = Graph(figsize=(10, 3))
     box_sg.addWidget(self.graph)
-    self.graph_tb = NavigationToolbar(self.graph, self)
+    self.graph_tb = NavigationToolbar(self.graph, self, coordinates=False)
     self.graph_tb.setOrientation(Qt.Vertical)
     box_sg.addWidget(self.graph_tb)
     return box_sg
@@ -77,7 +78,7 @@ def populatePlot(self):
     box_plot = QHBoxLayout()
     self.plot = Graph(figsize=(8, 5))
     box_plot.addWidget(self.plot)
-    self.plot_tb = NavigationToolbar(self.plot, self)
+    self.plot_tb = NavigationToolbar(self.plot, self, coordinates=False)
     self.plot_tb.setOrientation(Qt.Vertical)
     box_plot.addWidget(self.plot_tb)
     return box_plot
