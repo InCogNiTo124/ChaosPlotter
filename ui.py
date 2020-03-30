@@ -2,7 +2,7 @@ import numpy as np
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-from PyQt5.QtWidgets import QWidget, QComboBox, QHBoxLayout, QVBoxLayout, QSpacerItem, QSizePolicy, QSlider, QLabel
+from PyQt5.QtWidgets import QWidget, QComboBox, QHBoxLayout, QVBoxLayout, QSpacerItem, QSizePolicy, QSlider, QLabel, QProgressBar
 
 class MyQSlider(QSlider):
     def __init__(self, *args, **kwargs):
@@ -36,7 +36,7 @@ class Graph(FigureCanvas):
     def clear(self, *args, **kwargs):
         return self.axes.clear(*args, **kwargs)
 
-def populateComboBoxes(self, problem_list):
+def populateComboBoxes(self, problem_list, processor_list):
     box_cb = QHBoxLayout()
     self.functions_cb = QComboBox()
     for problem in problem_list:
@@ -46,13 +46,13 @@ def populateComboBoxes(self, problem_list):
     self.functions_cb.setFont(font)
     box_cb.addWidget(self.functions_cb)
     box_cb.addItem(QSpacerItem(10, 10, QSizePolicy.Expanding))
-    graph_cb = QComboBox()
-    for item in ["P\u2099", "\u2131[P\u2099]", "P\u2099\u208A\u2081 - P\u2099", "\u2131[P\u2099\u208A\u2081 - P\u2099]"]:
-        graph_cb.addItem(item)
-    font = graph_cb.font()
+    self.graph_cb = QComboBox()
+    for processor in processor_list: 
+        self.graph_cb.addItem(processor.equation)
+    font = self.graph_cb.font()
     font.setPointSize(font.pointSize() + 10)
-    graph_cb.setFont(font)
-    box_cb.addWidget(graph_cb)
+    self.graph_cb.setFont(font)
+    box_cb.addWidget(self.graph_cb)
     return box_cb
 
 def populateSliderGraph(self):
@@ -85,13 +85,15 @@ def populatePlot(self):
     box_plot.addWidget(self.plot_tb)
     return box_plot
 
-def createUI(self, problem_list):
+def createUI(self, problem_list, processor_list):
     box_v = QVBoxLayout(self.main) 
-    box_v.addLayout(populateComboBoxes(self, problem_list))
+    box_v.addLayout(populateComboBoxes(self, problem_list, processor_list))
     box_v.addLayout(populateSliderGraph(self))
     box_v.addLayout(populateLabels(self))
     self.r_slider = MyQSlider(Qt.Horizontal)
     box_v.addWidget(self.r_slider)
     box_v.addLayout(populatePlot(self))
+    self.progress = QProgressBar()
+    box_v.addWidget(self.progress)
     return box_v
 
