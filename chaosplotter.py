@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+from numpy.fft import fft
 from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication
 from ui import createUI
 
@@ -32,9 +33,9 @@ class ChaosPlotter(QMainWindow):
     
     PROCESSORS = [
         Function("population", "P\u2099", lambda x: x),
-        Function("fft(pop)", "\u2131[P\u2099]", lambda x: np.abs(np.fft.fft(x))),
+        Function("fft(pop)", "\u2131[P\u2099]", lambda x: np.log(np.abs(fft(x, norm='ortho')))),
         Function("diff", "P\u2099\u208A\u2081 - P\u2099", lambda x: np.diff(x)),
-        Function("fft(diff)", "\u2131[P\u2099\u208A\u2081 - P\u2099]", lambda x: np.abs(np.fft.fft(np.diff(x)))),
+        Function("fft(diff)", "\u2131[P\u2099\u208A\u2081 - P\u2099]", lambda x: np.log(np.abs(fft(np.diff(x), norm='ortho')))),
     ]
 
     def __init__(self):
@@ -70,16 +71,18 @@ class ChaosPlotter(QMainWindow):
         R = self.r_slider.valueNormalized()
         population = [P]
         processor = self.getCurrentProcessor()
-        print(processor.name)
-        for i in range(1000):
+        #print(processor.name)
+        for i in range(5000):
             P = function(R, P)
             population.append(P)
         population = np.array(population).flatten()
-        self.graph.clear()
-        #self.graph.axes.set_ylim(0.0, 1.0)
         y_val = processor(population)
+        #print(y_val.shape)
         x_val = np.arange(0, len(y_val), 1)
         #print(x_val, y_val)
+        #M = max(y_val[1:])
+        self.graph.clear()
+        self.graph.axes.set_ylim(-10, 5)
         self.graph.plot(x_val, y_val, '.')
         self.graph.draw()
         return
