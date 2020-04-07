@@ -3,6 +3,7 @@ import numpy as np
 from numpy import fft
 from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication
 from ui import createUI
+import concurrent.futures as cf
 
 def dft(x, norm=None):
     x = fft.rfft(x, norm=norm)
@@ -89,14 +90,29 @@ class ChaosPlotter(QMainWindow):
         return
 
     def plotBifurcation(self):
+        def f(fun, r, p, iter_count):
+            for _ in range(iter_count):
+                p = fun(r, p)
+            return p
+
         function = self.getCurrentFunction()
         r_limits = function.limits
-        p = np.random.random(10000)
-        r = np.linspace(*r_limits, 10000)
-        for i in range(1000):
-            p = function(r, p)
+        #P = np.random.random(10000)
+        R_count = 100000
+        splits = 20
+        R = np.linspace(*r_limits, R_count)
+        #for i in range(1000):
+        #    p = function(r, p)
+        #population = iterate(function, r, p, 2000)
         self.plot.clear()
-        self.plot.scatter(r, p, s=0.1)
+        with cf.ThreadPoolExecutor() as executor:
+            futures = {executor.submit(f, function, r, np.random.randn(R_count // splits), 5000): r for r in np.split(R, splits)}
+            for future in cf.as_completed(futures):
+                r = futures[future]
+                p = future.result()
+                self.plot.scatter(r, p, s=0.1)
+        #population = p
+        #self.plot.scatter(r, population, s=0.1)
         self.plot.draw()
         return
 
