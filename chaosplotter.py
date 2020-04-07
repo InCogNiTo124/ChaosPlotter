@@ -1,9 +1,11 @@
 import sys
 import numpy as np
 from numpy import fft
+from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication
 from ui import createUI
 import concurrent.futures as cf
+from threading import Thread
 
 def dft(x, norm=None):
     x = fft.rfft(x, norm=norm)
@@ -11,13 +13,30 @@ def dft(x, norm=None):
     x = np.log(x)
     return x
 
-def iterate(function, R, P, iter_count):
-    population = [P]
+def iterate(function, R, P, iter_count, history=False):
+    if history:
+        population = [P]
     for i in range(iter_count):
         P = function(R, P)
-        population.append(P)
-    return np.array(population).ravel()
+        if history:
+            population.append(P)
+    return np.array(population).ravel() if history else P
 
+def makeplot(plot, function, r_limits, R_count, splits, iter_count, callback=None):
+    R = np.linspace(*r_limits, R_count)
+    with cf.ThreadPoolExecutor() as executor:
+        futures = {
+            executor.submit(iterate, function, r, np.random.random(R_count // splits), iter_count, False): r
+            for r in np.split(R, splits)
+        }
+        for future in cf.as_completed(futures):
+            r = futures[future]
+            p = future.result()
+            plot.scatter(r, p, s=0.1, c='black')
+            plot.draw()
+            if not callback:
+                callback.setValue(callback.value() + 1)
+    return
 
 class Function:
     def __init__(self, name, equation, function, limits=(0.0, 1.0)):
@@ -34,7 +53,7 @@ class ChaosPlotter(QMainWindow):
     PROBLEMS = [
         Function("stub", "Select...", lambda r, p: p, (0, 0)),
         Function("logistic", "R \u00b7 P\u2099(1 - P\u2099)", lambda r, p: r * p * (1-p), (1, 4)),
-        Function("sin", "R \u00b7 sin(P\u2099)", lambda r, p: r * np.sin(np.pi * p), (0.3, 1)),
+        Function("sin", "R \u00b7 sin(P\u2099)", lambda r, p: r * np.sin(np.pi * p), (0.31, 1.0)),
     ]
     
     PROCESSORS = [
@@ -75,13 +94,10 @@ class ChaosPlotter(QMainWindow):
         function = self.getCurrentFunction()
         P = np.array([self.population_slider.valueNormalized()])
         R = self.r_slider.valueNormalized()
-        population = iterate(function, R, P, 5000)
+        population = iterate(function, R, P, 5000, history=True)
         processor = self.getCurrentProcessor()
         y_val = processor(population)
-        #print(y_val.shape)
         x_val = np.arange(0, len(y_val), 1)
-        #print(x_val, y_val)
-        #M = max(y_val[1:])
         self.graph.clear()
         limits = processor.limits
         self.graph.axes.set_ylim(*limits)
@@ -90,30 +106,19 @@ class ChaosPlotter(QMainWindow):
         return
 
     def plotBifurcation(self):
-        def f(fun, r, p, iter_count):
-            for _ in range(iter_count):
-                p = fun(r, p)
-            return p
-
         function = self.getCurrentFunction()
         r_limits = function.limits
-        #P = np.random.random(10000)
-        R_count = 100000
-        splits = 20
-        R = np.linspace(*r_limits, R_count)
-        #for i in range(1000):
-        #    p = function(r, p)
-        #population = iterate(function, r, p, 2000)
+        #print(r_limits)
+        R_count = 10000 # refactor to settings
+        splits = 100 # refactor to settings
+        iter_count = 3000 # refactor to settings
         self.plot.clear()
-        with cf.ThreadPoolExecutor() as executor:
-            futures = {executor.submit(f, function, r, np.random.randn(R_count // splits), 5000): r for r in np.split(R, splits)}
-            for future in cf.as_completed(futures):
-                r = futures[future]
-                p = future.result()
-                self.plot.scatter(r, p, s=0.1)
-        #population = p
-        #self.plot.scatter(r, population, s=0.1)
-        self.plot.draw()
+        self.plot.axes.set_xlim(*r_limits)
+        self.plot.axes.set_ylim(0.0, 1.0)
+        self.progress.setRange(0, splits)
+        self.progress.setValue(0)
+        self.progress.show()
+        Thread(target=makeplot, args=(self.plot, function, r_limits, R_count, splits, iter_count, self.progress)).start()
         return
 
     def handleFunctionChange(self, index):
@@ -132,7 +137,6 @@ class ChaosPlotter(QMainWindow):
 
     def handleProcessorChange(self, index):
         self.processor_index = index
-        #print(self.processor_index)
         self.refreshGraph()
         return
 
