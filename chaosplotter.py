@@ -1,41 +1,40 @@
 import sys
 import numpy as np
-from numpy.fft import fft
+from numpy import fft
 from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication
 from ui import createUI
 
+def dft(x, norm=None):
+    x = fft.rfft(x, norm=norm)
+    x = np.abs(x)
+    x = np.log(x)
+    #x = fft.fftshift(x)
+    return x
+
+
 class Function:
-    def __init__(self, name, equation, function):
+    def __init__(self, name, equation, function, limits=(0.0, 1.0)):
         self.name = name
         self.equation = equation
         self.function = function
-        return
-
-    def __call__(self, p):
-        return self.function(p)
-
-class Problem(Function):
-    def __init__(self, name, equation, function, r_limits):
-        super().__init__(name, equation, function)
-        self.r_limits = r_limits
+        self.limits = limits
         return
 
     def __call__(self, *args):
         return self.function(*args)
 
-
 class ChaosPlotter(QMainWindow):
     PROBLEMS = [
-        Problem("stub", "Select...", lambda r, p: p, (0, 0)),
-        Problem("logistic", "R \u00b7 P\u2099(1 - P\u2099)", lambda r, p: r * p * (1-p), (1, 4)),
-        Problem("sin", "R \u00b7 sin(P\u2099)", lambda r, p: r * np.sin(np.pi * p), (0.3, 1)),
+        Function("stub", "Select...", lambda r, p: p, (0, 0)),
+        Function("logistic", "R \u00b7 P\u2099(1 - P\u2099)", lambda r, p: r * p * (1-p), (1, 4)),
+        Function("sin", "R \u00b7 sin(P\u2099)", lambda r, p: r * np.sin(np.pi * p), (0.3, 1)),
     ]
     
     PROCESSORS = [
         Function("population", "P\u2099", lambda x: x),
-        Function("fft(pop)", "\u2131[P\u2099]", lambda x: np.log(np.abs(fft(x, norm='ortho')))),
+        Function("fft(pop)", "\u2131[P\u2099]", lambda x: dft(x, norm='ortho')),
         Function("diff", "P\u2099\u208A\u2081 - P\u2099", lambda x: np.diff(x)),
-        Function("fft(diff)", "\u2131[P\u2099\u208A\u2081 - P\u2099]", lambda x: np.log(np.abs(fft(np.diff(x), norm='ortho')))),
+        Function("fft(diff)", "\u2131[P\u2099\u208A\u2081 - P\u2099]", lambda x: dft(np.diff(x), norm='ortho')),
     ]
 
     def __init__(self):
@@ -66,7 +65,7 @@ class ChaosPlotter(QMainWindow):
         return
 
     def refreshGraph(self):
-        function = self.getCurrentProblem()
+        function = self.getCurrentFunction()
         P = np.array([self.population_slider.valueNormalized()])
         R = self.r_slider.valueNormalized()
         population = [P]
@@ -76,7 +75,7 @@ class ChaosPlotter(QMainWindow):
             P = function(R, P)
             population.append(P)
         population = np.array(population).flatten()
-        y_val = processor(population)
+        y_val = processor(population))
         #print(y_val.shape)
         x_val = np.arange(0, len(y_val), 1)
         #print(x_val, y_val)
@@ -88,9 +87,10 @@ class ChaosPlotter(QMainWindow):
         return
 
     def plotBifurcation(self):
-        function = self.getCurrentProblem()
+        function = self.getCurrentFunction()
+        r_limits = function.limits
         p = np.random.random(10000)
-        r = np.linspace(*function.r_limits, 10000)
+        r = np.linspace(*r_limits, 10000)
         for i in range(1000):
             p = function(r, p)
         self.plot.clear()
@@ -103,7 +103,8 @@ class ChaosPlotter(QMainWindow):
         if index > 0:
             self.r_slider.setEnabled(True)
             self.population_slider.setEnabled(True)
-            self.r_slider.setInterval(*self.getCurrentProblem().r_limits)
+            r_limits = self.getCurrentFunction().limits
+            self.r_slider.setInterval(*r_limits)
             self.refreshGraph()
             self.plotBifurcation()
         else:
@@ -113,7 +114,7 @@ class ChaosPlotter(QMainWindow):
 
     def handleProcessorChange(self, index):
         self.processor_index = index
-        print(self.processor_index)
+        #print(self.processor_index)
         self.refreshGraph()
         return
 
@@ -126,7 +127,7 @@ class ChaosPlotter(QMainWindow):
         self.graph_cb.currentIndexChanged.connect(lambda t: self.handleProcessorChange(t))
         return
 
-    def getCurrentProblem(self):
+    def getCurrentFunction(self):
         return self.PROBLEMS[self.problem_index]
 
     def getCurrentProcessor(self):
