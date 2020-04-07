@@ -8,8 +8,14 @@ def dft(x, norm=None):
     x = fft.rfft(x, norm=norm)
     x = np.abs(x)
     x = np.log(x)
-    #x = fft.fftshift(x)
     return x
+
+def iterate(function, R, P, iter_count):
+    population = [P]
+    for i in range(iter_count):
+        P = function(R, P)
+        population.append(P)
+    return np.array(population).ravel()
 
 
 class Function:
@@ -31,10 +37,10 @@ class ChaosPlotter(QMainWindow):
     ]
     
     PROCESSORS = [
-        Function("population", "P\u2099", lambda x: x),
-        Function("fft(pop)", "\u2131[P\u2099]", lambda x: dft(x, norm='ortho')),
-        Function("diff", "P\u2099\u208A\u2081 - P\u2099", lambda x: np.diff(x)),
-        Function("fft(diff)", "\u2131[P\u2099\u208A\u2081 - P\u2099]", lambda x: dft(np.diff(x), norm='ortho')),
+        Function("population", "P\u2099", lambda x: x, (0, 1)),
+        Function("fft(pop)", "\u2131[P\u2099]", lambda x: dft(x, norm='ortho'), (-10, 4)),
+        Function("diff", "P\u2099\u208A\u2081 - P\u2099", lambda x: np.diff(x), (-1, 1)),
+        Function("fft(diff)", "\u2131[P\u2099\u208A\u2081 - P\u2099]", lambda x: dft(np.diff(x), norm='ortho'), (-10, 4)),
     ]
 
     def __init__(self):
@@ -68,20 +74,16 @@ class ChaosPlotter(QMainWindow):
         function = self.getCurrentFunction()
         P = np.array([self.population_slider.valueNormalized()])
         R = self.r_slider.valueNormalized()
-        population = [P]
+        population = iterate(function, R, P, 5000)
         processor = self.getCurrentProcessor()
-        #print(processor.name)
-        for i in range(5000):
-            P = function(R, P)
-            population.append(P)
-        population = np.array(population).flatten()
-        y_val = processor(population))
+        y_val = processor(population)
         #print(y_val.shape)
         x_val = np.arange(0, len(y_val), 1)
         #print(x_val, y_val)
         #M = max(y_val[1:])
         self.graph.clear()
-        self.graph.axes.set_ylim(-10, 5)
+        limits = processor.limits
+        self.graph.axes.set_ylim(*limits)
         self.graph.plot(x_val, y_val, '.')
         self.graph.draw()
         return
