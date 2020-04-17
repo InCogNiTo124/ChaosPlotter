@@ -1,8 +1,8 @@
-import numpy as np
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-from PyQt5.QtWidgets import QWidget, QComboBox, QHBoxLayout, QVBoxLayout, QSpacerItem, QSizePolicy, QSlider, QLabel, QProgressBar
+from PyQt5.QtWidgets import QComboBox, QHBoxLayout, QVBoxLayout, QSpacerItem, QSizePolicy, QSlider, QLabel, QProgressBar
+
 
 class MyQSlider(QSlider):
     def __init__(self, *args, **kwargs):
@@ -17,10 +17,12 @@ class MyQSlider(QSlider):
         self.my_min, self.my_max = interval_min, interval_max
         return
 
+
 class Graph(FigureCanvas):
     def __init__(self, figsize):
         self.fig = Figure(figsize=figsize)
         self.axes = self.fig.add_subplot(1, 1, 1)
+        self.line = None
         # not a bug per se, but a funny behavior
         # this mitigates it
         # https://github.com/matplotlib/matplotlib/issues/16777
@@ -31,10 +33,23 @@ class Graph(FigureCanvas):
 
     def plot(self, *args, **kwargs):
         return self.axes.plot(*args, **kwargs)
+
     def scatter(self, *args, **kwargs):
         return self.axes.scatter(*args, **kwargs)
+
     def clear(self, *args, **kwargs):
         return self.axes.clear(*args, **kwargs)
+
+    def adjust(self, **kwargs):
+        return self.fig.subplots_adjust(**kwargs)
+
+    def indicator(self, R):
+        if self.line is not None:
+            self.line.remove()
+        self.line = self.axes.axvline(R, c='red')
+        self.draw_idle()
+        return
+
 
 def populateComboBoxes(self, problem_list, processor_list):
     box_cb = QHBoxLayout()
@@ -47,13 +62,14 @@ def populateComboBoxes(self, problem_list, processor_list):
     box_cb.addWidget(self.functions_cb)
     box_cb.addItem(QSpacerItem(10, 10, QSizePolicy.Expanding))
     self.graph_cb = QComboBox()
-    for processor in processor_list: 
+    for processor in processor_list:
         self.graph_cb.addItem(processor.equation)
     font = self.graph_cb.font()
     font.setPointSize(font.pointSize() + 10)
     self.graph_cb.setFont(font)
     box_cb.addWidget(self.graph_cb)
     return box_cb
+
 
 def populateSliderGraph(self):
     box_sg = QHBoxLayout()
@@ -67,6 +83,7 @@ def populateSliderGraph(self):
     box_sg.addWidget(self.graph_tb)
     return box_sg
 
+
 def populateLabels(self):
     box_labels = QHBoxLayout()
     self.population_label = QLabel("R = {}")
@@ -78,22 +95,24 @@ def populateLabels(self):
 
 def populatePlot(self):
     box_plot = QHBoxLayout()
+    plot_box = QVBoxLayout()
     self.plot = Graph(figsize=(8, 5))
-    box_plot.addWidget(self.plot)
+    self.r_slider = MyQSlider(Qt.Horizontal)
+    plot_box.addWidget(self.r_slider)
+    plot_box.addWidget(self.plot)
     self.plot_tb = NavigationToolbar(self.plot, self, coordinates=False)
     self.plot_tb.setOrientation(Qt.Vertical)
+    box_plot.addLayout(plot_box)
     box_plot.addWidget(self.plot_tb)
     return box_plot
 
+
 def createUI(self, problem_list, processor_list):
-    box_v = QVBoxLayout(self.main) 
+    box_v = QVBoxLayout(self.main)
     box_v.addLayout(populateComboBoxes(self, problem_list, processor_list))
     box_v.addLayout(populateSliderGraph(self))
     box_v.addLayout(populateLabels(self))
-    self.r_slider = MyQSlider(Qt.Horizontal)
-    box_v.addWidget(self.r_slider)
     box_v.addLayout(populatePlot(self))
     self.progress = QProgressBar()
     box_v.addWidget(self.progress)
     return box_v
-
