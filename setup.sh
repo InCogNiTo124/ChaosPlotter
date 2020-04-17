@@ -16,10 +16,5 @@ elif [[ $1 != "--no-venv" ]]; then
     error
 fi
 
-pip3 install kivy Cython
-garden install --app graph
-garden install --app tickmarker
-pushd libs/garden/garden.tickmarker
-python setup.py build install
-popd
+pip3 install pyqt5 matplotlib
 echo -e "----------\nSUCCESS!\n"
