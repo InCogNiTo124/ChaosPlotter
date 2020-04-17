@@ -1,8 +1,11 @@
 
 # ChaosPlotter
-![No chaos](chaosplotter_nochaos_population.png)
-![Chaos](chaosplotter_chaos_population.png)
-![No chaos fft](chaosplotter_nochaos_fft.png)
+![](chaosplotter_nochaos_population.png)
+
+![](chaosplotter_chaos_population.png)
+
+![](chaosplotter_nochaos_fft.png)
+
 Plot chaos using Python3/[Qt](https://www.qt.io/)
 ## What is it?
 It's a visualization of iterated maps. A starting population P is selected (by a vertical slider on the far left) and then run through a function (as selected in the upper left). The result is then feeded once again through the same function, over and over again. This is called *MAP ITERATION*. Sequential values are plotted with the red line on the graph in the upper right.
@@ -41,4 +44,6 @@ and enjoy :)
 You are very welcome. Just open an issue or push a PR.
 
 ### TODO:
-- [] Switch to `pyqtgraph`
+- [x] Integration with numpy and matplotlib
+- [x] Using fast Qt gui framework
+- [ ] Switch to `pyqtgraph`
