@@ -42,7 +42,7 @@ class ChaosPlotter(QMainWindow):
         Function("stub", "Select...", lambda r, p: p, (0, 0)),
         Function("logistic", "R \u00b7 P\u2099(1 - P\u2099)", lambda r, p: r * p * (1-p), (1, 4)),
         Function("sin", "R \u00b7 sin(P\u2099)", lambda r, p: r * np.sin(np.pi * p), (0.31, 1.0)),
-        Function("triangle", "R \u00b7 \u0394(P\u2099)", lambda r, p: r * np.minimum(p, 1-p), (0.0, 2.0)),
+        Function("triangle", "R \u00b7 \u0394(P\u2099)", lambda r, p: r * np.minimum(p, 1-p), (1.0, 2.0)),
     ]
 
     PROCESSORS = [
