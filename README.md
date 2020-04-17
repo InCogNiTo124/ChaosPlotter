@@ -1,8 +1,8 @@
 
 # ChaosPlotter
-![No chaos](chaosplotter_nochaos_population.png))
-![Chaos](chaosplotter_chaos_population.png))
-![No chaos fft](chaosplotter_nochaos_fft.png))
+![No chaos](chaosplotter_nochaos_population.png)
+![Chaos](chaosplotter_chaos_population.png)
+![No chaos fft](chaosplotter_nochaos_fft.png)
 Plot chaos using Python3/[Qt](https://www.qt.io/)
 ## What is it?
 It's a visualization of iterated maps. A starting population P is selected (by a vertical slider on the far left) and then run through a function (as selected in the upper left). The result is then feeded once again through the same function, over and over again. This is called *MAP ITERATION*. Sequential values are plotted with the red line on the graph in the upper right.
@@ -12,7 +12,7 @@ If we plot the values the map converges to as a function of R, we get a [bifurca
 
 ## How to use it?
 1. Choose a function you wish to iterate. The first one usually gives the best results.
-2. Observe the bifurcation diagram slowly<sup>3</sup> appearing in front of you and be amazed.
+2. Observe the bifurcation diagram appearing in front of you and be amazed.
 3. Change the R with the big slider in the middle. Observe what happens with the population graph. The vertical line in the diagram shows where the population graph from above fits into the bifurcation diagram. Be more amazed.
 4. Change the starting population:
 	1. If you're in the "tame" zone, observe how the oscillating values don't change much with respect to the starting population.
@@ -37,9 +37,8 @@ and enjoy :)
 
 - <sup>1</sup> This is true for all values in [0, 1], except 0 and 1 (so technically <0, 1>), and maybe some points inside that interval
 - <sup>2</sup> Actually, you can find periods of any length: 5, 13, 120497... You name the natural number, the corresponding period is in there somewhere
-- <sup>3</sup> Yes, I am aware of how slow it is. It takes, on average, around 60 seconds on my Ryzen 7
 ## Wish to contribute?
 You are very welcome. Just open an issue or push a PR.
 
 ### TODO:
-[] - Switch to `pyqtgraph`
+- [] Switch to `pyqtgraph`
