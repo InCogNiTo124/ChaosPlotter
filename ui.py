@@ -93,6 +93,7 @@ def populateLabels(self):
     box_labels.addItem(QSpacerItem(10, 10, QSizePolicy.Expanding))
     return box_labels
 
+
 def populatePlot(self):
     box_plot = QHBoxLayout()
     plot_box = QVBoxLayout()

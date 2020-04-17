@@ -1,7 +1,9 @@
 
 # ChaosPlotter
-![Screenshot](/ChaosPlotterScreenshot.png)
-Plot chaos using Python3/[Kivy](https://kivy.org/)
+![No chaos](chaosplotter_nochaos_population.png))
+![Chaos](chaosplotter_chaos_population.png))
+![No chaos fft](chaosplotter_nochaos_fft.png))
+Plot chaos using Python3/[Qt](https://www.qt.io/)
 ## What is it?
 It's a visualization of iterated maps. A starting population P is selected (by a vertical slider on the far left) and then run through a function (as selected in the upper left). The result is then feeded once again through the same function, over and over again. This is called *MAP ITERATION*. Sequential values are plotted with the red line on the graph in the upper right.
 An interesting behaviour can be observed if the value of R (big central horizontal slide) is increased. At first, almost every<sup>1</sup> starting population converges to a fixed number. By increasing the R slider even more, our iterated map starts to oscillate between 2 values. If R keeps getting bigger, we see the period 4, than 8, 16... and so on until it gets chaotic and starts to take any value from [0, 1] interval in a seemingly random fashion.
@@ -40,13 +42,4 @@ and enjoy :)
 You are very welcome. Just open an issue or push a PR.
 
 ### TODO:
-- Add more modes for population visualization:
-	- [ ] Fourier transform of the population
-	- [ ] Difference from the previous population
-	- [ ] Fourier transform of the difference
-	- [ ] Something else?!
-- I wish to have a dropdown of functions to iterate rendered either in latex or [Kivy markup](https://kivy.org/doc/stable/api-kivy.core.text.markup.html)
-- Speed
-	- [ ] Integration with numpy
-	- [ ] Better multithreading / processing
-
+[] - Switch to `pyqtgraph`
