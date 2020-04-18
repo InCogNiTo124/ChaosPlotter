@@ -1,180 +1,162 @@
-import sys
-import numpy as np
-from numpy import fft
-from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication
-from ui import createUI
+from kivy.config import Config
+Config.set('graphics', 'resizable', False)
+Config.set('graphics', 'fbo', 'hardware')
+Config.set('graphics', 'width', '1280')
+Config.set('graphics', 'height', '960')
+Config.set('graphics', 'borderless', False)
+
+from kivy.app import App
+from kivy.uix.widget import Widget
+from kivy.properties import NumericProperty, ObjectProperty
+from kivy.garden.graph import Graph, LinePlot as Plot
+from kivy.graphics import Point, Color, Line
+from kivy.graphics.vertex_instructions import GraphicException
+from kivy.garden.tickmarker import TickMarker
+from kivy.uix.slider import Slider
+import itertools as it
 import concurrent.futures as cf
-from threading import Thread
+import threading
+import math
 
+R_COUNT = 1000
+P_COUNT = 100
 
-def dft(x, norm=None):
-    x = fft.fft(x, norm=norm)
-    x = fft.fftshift(x)
-    x = np.abs(x)
-    x = np.log(x)
-    return x
+def iterate(f, r, population):
+    while True:
+        yield population
+        population = f(r, population)
+    return
 
+def generate(fun, r, population, maxiter):
+    iterator = iterate(fun, r, population)
+    sequence = [(i, next(iterator)) for i in range(maxiter)]
+    del(iterator)
+    return sequence
 
-def iterate(function, R, P, iter_count, history=False):
-    if history:
-        population = [P]
-    for i in range(iter_count):
-        P = function(R, P)
-        if history:
-            population.append(P)
-    return np.array(population).ravel() if history else P
+def get_last(function, r_factor, population, iter_count):
+    iterator = iterate(function, r_factor, population)
+    last = next(iterator)
+    for _ in range(iter_count):
+        last = next(iterator)
+    return last
 
+class TickSlider(Slider, TickMarker):
+    pass
 
-class Function:
-    def __init__(self, name, equation, function, limits=(0.0, 1.0)):
-        self.name = name
-        self.equation = equation
-        self.function = function
-        self.limits = limits
+class ChaosPlotter(Widget):
+    FUNCTIONS = [
+        lambda r, p: r * p * (1 - p),
+        lambda r, p: r * math.sin(math.pi * p),
+        lambda r, p: r * (1 - math.cos(2*math.pi*p)) / 2,
+        lambda r, p: r * p*p*(1-p),
+        lambda r, p: r * p*(1 - p*p)]
+    population = NumericProperty(0.74)
+    r = NumericProperty(3.2)
+    r_slider = ObjectProperty(None)
+    graph = ObjectProperty(None)
+    diagram = ObjectProperty(None)
+    progress = ObjectProperty(None)
+    function_index = NumericProperty(None)
+    Graph() # There is a serious bug in a garden.graph library that can only be solved like this
+    plot = Plot(color=(1, 0, 0, 1))
+    diag_size = (0, 0)
+    indicator = Line(points=[], width=1.0)
+
+    def update_r_slider(self):
+        n = self.r_slider.value_normalized
+        if self.function_index == 0:
+            self.r_slider.min = 1
+            self.r_slider.max = 4
+        elif self.function_index == 1:
+            self.r_slider.min = 0.5
+            self.r_slider.max = 1
+        elif self.function_index == 2:
+            self.r_slider.min = 0.439
+            self.r_slider.max = 0.879
+        elif self.function_index == 3:
+            self.r_slider.min = 4
+            self.r_slider.max = 6.543
+        elif self.function_index == 4:
+            self.r_slider.min = 1
+            self.r_slider.max = 3
+        self.r_slider.value_normalized = n
         return
 
-    def __call__(self, *args):
-        return self.function(*args)
-
-
-class ChaosPlotter(QMainWindow):
-    PROBLEMS = [
-        Function("stub", "Select...", lambda r, p: p, (0, 0)),
-        Function("logistic", "R \u00b7 P\u2099(1 - P\u2099)", lambda r, p: r * p * (1-p), (1, 4)),
-        Function("sin", "R \u00b7 sin(P\u2099)", lambda r, p: r * np.sin(np.pi * p), (0.31, 1.0)),
-        Function("triangle", "R \u00b7 \u0394(P\u2099)", lambda r, p: r * np.minimum(p, 1-p), (1.0, 2.0)),
-    ]
-
-    PROCESSORS = [
-        Function("population", "P\u2099", lambda x: x, (0, 1)),
-        Function("fft(pop)", "\u2131[P\u2099]", lambda x: dft(x, norm='ortho'), (-10, 4)),
-        Function("diff", "P\u2099\u208A\u2081 - P\u2099", lambda x: np.diff(x), (-1, 1)),
-        Function("fft(diff)", "\u2131[P\u2099\u208A\u2081 - P\u2099]",
-                 lambda x: dft(np.diff(x), norm='ortho'), (-10, 4)),
-    ]
-
-    def __init__(self):
-        super().__init__()
-        self.main = QWidget()
-        self.setCentralWidget(self.main)
-        self.main.setLayout(createUI(self, self.PROBLEMS, self.PROCESSORS))
-        self.r_slider.setMinimum(0)
-        self.r_slider.setMaximum(10000)
-        self.r_slider.setValue(5000)
-        self.r_slider.setInterval(1, 4)
-        self.r_slider.setEnabled(False)
-        self.updateRfactor(self.r_slider)
-        self.population_slider.setMinimum(0)
-        self.population_slider.setMaximum(1000)
-        self.population_slider.setValue(500)
-        self.population_slider.setEnabled(False)
-        self.updatePopulation(self.population_slider)
-        self.doConnections()
-        self.processor_index = 0
-        self.problem_index = 0
-        self.graph.adjust(left=0.02, right=0.99, top=0.975, bottom=0.075)
+    def on_function_index(self, a, b):
+        self.update_r_slider()
+        self.start_bifurcation(self.diag_size, self.FUNCTIONS[self.function_index])
         return
 
-    def updatePopulation(self, sender):
-        self.population_label.setText("P = {}".format(round(sender.valueNormalized(), 2)))
+    def update_indicator(self):
+        if self.function_index is not None:
+            self.diagram.canvas.remove(self.indicator)
+            start_x, start_y = self.diagram.pos
+            self.indicator.points = [
+                start_x + self.r_slider.value_normalized * self.diagram.width,
+                start_y + self.diagram.height,
+                start_x + self.r_slider.value_normalized * self.diagram.width,
+                start_y
+            ]
+            with self.diagram.canvas:
+                Color(1, 0, 0)
+            self.diagram.canvas.add(self.indicator)
+            with self.diagram.canvas:
+                Color(0, 0, 0)
+            self.diagram.canvas.add(self.indicator)
         return
 
-    def updateRfactor(self, sender):
-        self.r_label.setText("R = {}".format(round(sender.valueNormalized(), 3)))
+    def update_graph(self):
+        if self.function_index is not None:
+            self.graph.remove_plot(self.plot)
+            self.plot.points = generate(self.FUNCTIONS[self.function_index], self.r, self.population, self.graph.xmax)
+            self.graph.add_plot(self.plot)
+        return
+    
+    on_population = lambda self, a, b: self.update_graph()
+
+    def on_r(self, a, b):
+        self.update_indicator()
+        self.update_graph()
         return
 
-    def refreshGraph(self):
-        function = self.getCurrentFunction()
-        P = np.array([self.population_slider.valueNormalized()])
-        R = self.r_slider.valueNormalized()
-        population = iterate(function, R, P, 5040, history=True)
-        processor = self.getCurrentProcessor()
-        y_val = processor(population)
-        x_val = np.arange(0, len(y_val), 1)
-        self.graph.clear()
-        limits = processor.limits
-        self.graph.axes.set_ylim(*limits)
-        self.graph.plot(x_val, y_val, '.', markersize=4.0)
-        self.graph.draw()
+    def start_bifurcation(self, size, function):
+        self.progress.value = 0
+        self.update_graph()
+        self.diagram.canvas.clear()
+        size_x, size_y = size
+        def f(self, size_x, size_y):
+            r_min = self.r_slider.min
+            r_max = self.r_slider.max
+            with cf.ThreadPoolExecutor(max_workers=5) as executor:
+                futures = {
+                    executor.submit(get_last, function, r_min + (r_max - r_min)*r/R_COUNT, p/P_COUNT, self.graph.xmax): r/R_COUNT
+                    for p, r in it.product(range(1, P_COUNT), range(R_COUNT))
+                }
+                self.progress.max = len(futures)
+                points = Point(points=[], pointsize=0.5)
+                with self.diagram.canvas:
+                    Color(0, 0, 0)
+                self.diagram.canvas.add(points)
+                for future in cf.as_completed(futures):
+                    self.progress.value += 1
+                    r = futures[future]
+                    p = future.result()
+                    try:
+                        points.add_point(r*size_x, p*size_y)
+                    except GraphicException:
+                        points = Point(points=[r*size_x, p*size_y], pointsize=0.5)
+                        self.diagram.canvas.add(points)
 
-        self.plot.indicator(R)
+            return
+        threading.Thread(target=f, args=(self,size_x, size_y)).start()
         return
 
-    def plotBifurcation(self):
-        function = self.getCurrentFunction()
-        r_limits = function.limits
-        R_count = 110880  # refactor to settings
-        # currently not supported:
-        # splits > 1
-        # splits is actually the number of jobs for a threadpool
-        # severe bugs are present if splits is not 1
-        # i literally have no idea how to fix it, bit this is fast enough
-        splits = 1  # refactor to settings
-        iter_count = 3000  # refactor to settings
-        self.plot.clear()
-        self.plot.axes.set_xlim(*r_limits)
-        self.plot.axes.set_ylim(0.0, 1.0)
-        self.plot.adjust(left=0.005, right=0.995, bottom=0.0, top=1.0)
-        self.progress.setRange(0, splits)
-        self.progress.setValue(0)
-        self.progress.show()
-        self.plot.indicator(self.r_slider.valueNormalized())
-        Thread(target=self.makeplot, args=(self.plot, function, r_limits, R_count, splits, iter_count)).start()
-        return
-
-    def makeplot(self, plot, function, r_limits, R_count, splits, iter_count, callback=None):
-        R = np.linspace(*r_limits, R_count)
-        with cf.ThreadPoolExecutor() as executor:
-            futures = {
-                executor.submit(iterate, function, r, np.random.random(R_count // splits), iter_count, False): r
-                for r in np.split(R, splits)
-            }
-            for future in cf.as_completed(futures):
-                r = futures[future]
-                p = future.result()
-                plot.scatter(r, p, s=0.1, c='black')
-                self.progress.setValue(self.progress.value() + 1)
-                plot.draw_idle()
-        return
-
-    def handleFunctionChange(self, index):
-        self.problem_index = index
-        if index > 0:
-            self.r_slider.setEnabled(True)
-            self.population_slider.setEnabled(True)
-            r_limits = self.getCurrentFunction().limits
-            self.r_slider.setInterval(*r_limits)
-            self.refreshGraph()
-            self.plotBifurcation()
-        else:
-            self.r_slider.setEnabled(False)
-            self.population_slider.setEnabled(False)
-        return
-
-    def handleProcessorChange(self, index):
-        self.processor_index = index
-        self.refreshGraph()
-        return
-
-    def doConnections(self):
-        self.population_slider.valueChanged.connect(lambda t: self.updatePopulation(self.sender()))
-        self.population_slider.valueChanged.connect(lambda t: self.refreshGraph())
-        self.r_slider.valueChanged.connect(lambda t: self.updateRfactor(self.sender()))
-        self.r_slider.valueChanged.connect(lambda t: self.refreshGraph())
-        self.functions_cb.currentIndexChanged.connect(lambda t: self.handleFunctionChange(t))
-        self.graph_cb.currentIndexChanged.connect(lambda t: self.handleProcessorChange(t))
-        return
-
-    def getCurrentFunction(self):
-        return self.PROBLEMS[self.problem_index]
-
-    def getCurrentProcessor(self):
-        return self.PROCESSORS[self.processor_index]
-
+class ChaosPlotterApp(App):
+    def build(self):
+        self.plotter = ChaosPlotter()
+        return self.plotter
 
 if __name__ == "__main__":
-    sys.argv[0] = "Chaos Plotter"
-    qapp = QApplication(sys.argv)
-    plotter = ChaosPlotter()
-    plotter.show()
-    qapp.exec()
+    a = ChaosPlotterApp()
+    a.run()
+
